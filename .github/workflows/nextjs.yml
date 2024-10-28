@@ -1,0 +1,21 @@
+name: nextjs
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    name: Nextjs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: pnpm
+        run: cd frontend && npm install -g pnpm
+      
+      - name: Start containers
+        run: docker compose -f docker/ci.yml up -d --build  
+
+      - name: Test
+        run: cd frontend && pnpm i && pnpm cypress run

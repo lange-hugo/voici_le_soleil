@@ -1,0 +1,14 @@
+FROM node:18
+
+WORKDIR /app/
+COPY ./frontend .
+RUN npm install -g pnpm
+
+RUN rm -rf node_modules
+RUN rm -rf .nextjs
+RUN rm -rf .pnpm-store
+RUN rm cypress.config.ts || true
+RUN pnpm i
+RUN pnpm uninstall cypress
+RUN pnpm build
+CMD pnpm start

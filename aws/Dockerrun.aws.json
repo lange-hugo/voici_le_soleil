@@ -1,0 +1,7 @@
+{
+    "AWSEBDockerrunVersion": "3",
+    "Authentication": {
+        "bucket": "TODO: $S3_BUCKET_NAME",
+        "key": "config.json"
+    }
+}

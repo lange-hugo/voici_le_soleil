@@ -1,0 +1,47 @@
+name: voici-le-soleil
+volumes:
+  traefik:
+
+services:
+  nextjs:
+    image: $GHCR_URL/nextjs:latest # TODO: remplacer GHCR_URL
+    expose:
+      - "3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.main.rule=Host(`$ELASTIC_BEANSTALK_DOMAIN`) && !PathPrefix(`/api`)" # TODO: remplacer ELASTIC_BEANSTALK_DOMAIN
+      - "traefik.http.routers.main.entrypoints=websecure"
+      - "traefik.http.routers.main.tls.certresolver=myresolver"
+      - "traefik.http.services.main.loadbalancer.server.port=3000"
+
+  django:
+    image: $GHCR_URL/django:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.django.rule=Host(`$ELASTIC_BEANSTALK_DOMAIN`) && PathPrefix(`/api`)" # TODO: remplacer ELASTIC_BEANSTALK_DOMAIN
+      - "traefik.http.routers.django.entrypoints=websecure"
+      - "traefik.http.routers.django.tls.certresolver=myresolver"
+      - "traefik.http.services.django.loadbalancer.server.port=8000"
+    expose:
+      - "8000"
+
+  traefik:
+    image: "traefik:v2.9.5"
+    container_name: traefik
+    command:
+      - "--log.level=INFO"
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=hugo.lange.pro@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - traefik:/letsencrypt
