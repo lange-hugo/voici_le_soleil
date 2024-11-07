@@ -44,7 +44,11 @@ class ProductView(GenericViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request):
-        serializer = self.get_serializer(data=request.data)
+        if "user" not in request.data:
+            data = {**dict(request.data), "user": request.user.pk}
+            serializer = self.get_serializer(data=data)
+        else:
+            serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
         return Response(
